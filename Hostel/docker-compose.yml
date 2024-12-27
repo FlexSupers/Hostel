@@ -1,0 +1,154 @@
+version: '3.4'
+
+services:
+  authorization.singleservice:
+    image: ${DOCKER_REGISTRY-}authorizationsingleservice
+    build:
+      context: .
+      dockerfile: Authorization.SingleService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "7580:80"
+    networks:
+      back:
+        ipv4_address: 172.131.0.2
+      default:
+      # - "443"
+    restart: always
+  hostelmvc:
+    image: ${DOCKER_REGISTRY-}hostelmvc
+    build:
+      context: .
+      dockerfile: Suo.Client/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "7581:80"
+    networks:
+      back:
+        ipv4_address: 172.131.0.3
+      default:
+    volumes:
+      - imagesnews:/app/wwwroot/Accets
+    restart: always
+  hostel:
+    image: ${DOCKER_REGISTRY-}hostel
+    build:
+      context: .
+      dockerfile: Hostel/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "7582:80"
+    networks:
+      back:
+        ipv4_address: 172.131.0.4
+      default:
+    restart: always
+    volumes:
+      - imagesnews:/app/wwwroot/Accets
+  telegrambot:
+    image: ${DOCKER_REGISTRY-}telegrambot
+    build:
+      context: .
+      dockerfile: Suo.TelegramBotSeparated/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    # ports:
+    #   - "7585:80"
+    networks:
+      back:
+        ipv4_address: 172.131.0.10
+      default:
+    restart: always
+    volumes:
+      - imagesnews:/app/wwwroot/Accets
+  # hostel.database:
+  #   image: mcr.microsoft.com/mssql/server:2022-CU6-ubuntu-20.04
+  #   container_name: hostelmssql
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   networks:
+  #     default: 
+  #   environment:
+  #     - MSSQL_SA_PASSWORD=Wladgood1051!
+  #     - ACCEPT_EULA=Y
+  #   ports:
+  #     - 7133:1433
+  rabbitmq:
+    image: rabbitmq:management
+    hostname: rabbitmq
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=ruser
+      - RABBITMQ_DEFAULT_PASS=wlad1051
+      # - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
+    # volumes:
+    #   - ./rabbitmq:/var/lib/rabbitmq
+    # ports:
+    #   - 15672:15672
+    #   - 5672:5672
+    networks:
+      back:
+        ipv4_address: 172.131.0.9
+      default:
+  hostel.mysql:
+    build: ./mysql/
+    container_name: hostelmyql
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # networks:
+    #   default: 
+    environment:
+      MYSQL_ROOT_PASSWORD: k0IcfdmmGSygHDQ75H
+      MYSQL_DATABASE: hostel
+      MYSQL_USER: hostel
+      MYSQL_PASSWORD: Sx2p1Te6BtACEwQjwE
+    restart: always
+    # ports:
+      # - 8506:3306
+    networks:
+      back:
+        ipv4_address: 172.131.0.7
+      default:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: Ams5y2jHeqNMZYpk
+    networks:
+      back:
+        ipv4_address: 172.131.0.8
+      default:
+  # mongo-express:
+  #   image: mongo-express
+  #   restart: always
+  #   ports:
+  #     - 8081:8081
+  #   networks:
+  #     back:
+  #       ipv4_address: 172.131.0.10
+  #     default:
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: root
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: Ams5y2jHeqNMZYpk
+  #     ME_CONFIG_MONGODB_URL: mongodb://root:Ams5y2jHeqNMZYpk@mongo:27017/
+
+volumes:
+  imagesnews:
+networks:
+  back:
+    driver: bridge
+    internal: true
+    ipam:
+     driver: default
+     config:
+       - subnet: 172.131.0.0/24
+  default:
+    driver: bridge
